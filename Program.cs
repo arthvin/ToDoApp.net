@@ -164,12 +164,12 @@ namespace ToDoApp
         catch (Exception ex)
         {
             Console.WriteLine($"Erro ao carregar as tarefas: {ex.Message}");
-            tarefas = new List<Tarefa>(); // Evita que o programa trave
+            tarefas = new List<Tarefa>(); 
         }
             }
         else
             {
-                tarefas = new List<Tarefa>(); // Inicializa lista vazia se o arquivo não existir
+                tarefas = new List<Tarefa>(); 
             }
         }
 
