@@ -1,14 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
 
 namespace ToDoApp
 {
+    public class Tarefa
+    {
+        public string Descricao { get; set; }
+        public string Prioridade { get; set; } 
+    }
+
     class Program
     {
-        static List<string> tarefas = new List<string>();
+        static List<Tarefa> tarefas = new List<Tarefa>();
+        const string arquivoTarefas = "tarefas.json";
 
         static void Main(string[] args)
         {
+            CarregarTarefas();
+
             bool sair = false;
 
             while (!sair)
@@ -39,6 +50,7 @@ namespace ToDoApp
                         ExcluirTarefa();
                         break;
                     case "5":
+                        SalvarTarefas();
                         sair = true;
                         break;
                     default:
@@ -53,8 +65,14 @@ namespace ToDoApp
         {
             Console.Clear();
             Console.Write("Digite a descrição da tarefa: ");
-            string tarefa = Console.ReadLine();
-            tarefas.Add(tarefa);
+            string descricao = Console.ReadLine();
+
+            Console.Write("Escolha a prioridade (Baixa, Média, Alta): ");
+            string prioridade = Console.ReadLine();
+
+            Tarefa novaTarefa = new Tarefa { Descricao = descricao, Prioridade = prioridade };
+            tarefas.Add(novaTarefa);
+
             Console.WriteLine("Tarefa adicionada com sucesso!");
             Console.ReadKey();
         }
@@ -71,7 +89,8 @@ namespace ToDoApp
                 Console.WriteLine("==== Lista de Tarefas ====");
                 for (int i = 0; i < tarefas.Count; i++)
                 {
-                    Console.WriteLine($"{i + 1}. {tarefas[i]}");
+                    var tarefa = tarefas[i];
+                    Console.WriteLine($"{i + 1}. {tarefa.Descricao} [Prioridade: {tarefa.Prioridade}]");
                 }
             }
             Console.ReadKey();
@@ -86,7 +105,11 @@ namespace ToDoApp
             if (int.TryParse(Console.ReadLine(), out int indice) && indice > 0 && indice <= tarefas.Count)
             {
                 Console.Write("Digite a nova descrição da tarefa: ");
-                tarefas[indice - 1] = Console.ReadLine();
+                tarefas[indice - 1].Descricao = Console.ReadLine();
+
+                Console.Write("Digite a nova prioridade (Baixa, Média, Alta): ");
+                tarefas[indice - 1].Prioridade = Console.ReadLine();
+
                 Console.WriteLine("Tarefa editada com sucesso!");
             }
             else
@@ -113,5 +136,42 @@ namespace ToDoApp
             }
             Console.ReadKey();
         }
+
+        static void SalvarTarefas()
+        {
+            string json = JsonSerializer.Serialize(tarefas, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(arquivoTarefas, json);
+            Console.WriteLine("Tarefas salvas no arquivo.");
+        }
+
+        static void CarregarTarefas()
+        {
+            if (File.Exists(arquivoTarefas))
+            {
+            try
+            {
+                string json = File.ReadAllText(arquivoTarefas);
+
+                if (!string.IsNullOrWhiteSpace(json)) 
+                {
+                    tarefas = JsonSerializer.Deserialize<List<Tarefa>>(json) ?? new List<Tarefa>();
+                }
+                else
+                {
+                    tarefas = new List<Tarefa>(); 
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao carregar as tarefas: {ex.Message}");
+            tarefas = new List<Tarefa>(); // Evita que o programa trave
+        }
+            }
+        else
+            {
+                tarefas = new List<Tarefa>(); // Inicializa lista vazia se o arquivo não existir
+            }
+        }
+
     }
 }
